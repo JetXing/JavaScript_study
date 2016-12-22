@@ -215,8 +215,8 @@ getAge.apply(xiaoming, []);
 // apply()把参数打包成Array再传入；
 // call()把参数按顺序传入。
 // 比如调用Math.max(3, 5, 4)，分别用apply()和call()实现如下：
-// Math.max.apply(null, [3, 5, 4]); // 5
-// Math.max.call(null, 3, 5, 4); // 5
+Math.max.apply(null, [3, 5, 4]); // 5
+Math.max.call(null, 3, 5, 4); // 5
 // 对普通函数调用，我们通常把this绑定为null。
 
 
@@ -571,19 +571,19 @@ var zero = function (f) {
 };
 
 // 定义数字1:
-var one = function (f) {
-    return function (x) {
-        return f(x);
-    }
+var one = function(f) {
+	return function(x) {
+		return f(x);
+	}
 };
 
 // 定义加法:
 function add(n, m) {
-    return function (f) {
-        return function (x) {
-            return m(f)(n(f)(x));
-        }
-    }
+	return function(f) {
+		return function(x) {
+			return m(f)(n(f)(x));
+		}
+	}
 }
 // 计算数字2 = 1 + 1:
 var two = add(one, one);
@@ -599,13 +599,13 @@ var five = add(two, three);
 // 呵呵，看这里:
 
 // 给3传一个函数,会打印3次:
-(three(function () {
-    console.log('print 3 times');
+(three(function() {
+	console.log('print 3 times');
 }))();
 
 // 给5传一个函数,会打印5次:
-(five(function () {
-    console.log('print 5 times');
+(five(function() {
+	console.log('print 5 times');
 }))();
 
 var one = function(f) {
@@ -613,39 +613,239 @@ var one = function(f) {
 		return f(x);
 	}
 }
-one;//function(f) {
-	return function(x) {
+one; //function(f) {
+return function(x) {
+	return f(x);
+}
+}
+one(); //function(x) {
+return f(x);
+}
+one(function() {
+		console.log('print');
+	})
+	(x) {
 		return f(x);
+	}
+
+
+// Arrow Function（箭头函数）
+// 为什么叫Arrow Function？因为它的定义用的就是一个箭头：
+x => x * x；
+// 上面的箭头函数相当于：
+function (x) {
+    return x * x;
+}
+// 箭头函数相当于匿名函数，并且简化了函数定义。箭头函数有两种格式，一种像上面的，只包含一个表达式，连{ ... }和return都省略掉了。
+// 还有一种可以包含多条语句，这时候就不能省略{ ... }和return：
+x => {
+	if(x > 0) {
+		return x * x;
+	} else {
+		return - x * x;
 	}
 }
-one();//function(x) {
-		return f(x);
+// 如果参数不是一个，就需要用括号()括起来：
+(x, y) => x * x + y * y
+// 无参数:
+() => 3.14;
+// 可变参数:
+(x, y, ...rest) => {
+	var 
+		i,
+		sum = x + y;
+		for (var i = 0; i < rest.length; i++) {
+			sum += rest[i];
+		}
+		return sum;
+}
+// 如果要返回一个对象，就要注意，如果是单表达式
+x => ({ foo: x })
+
+
+// this
+// 箭头函数看上去是匿名函数的一种简写，但实际上，箭头函数和匿名函数有个明显的区别：箭头函数内部的this是词法作用域，由上下文确定。
+var obj = {
+	birth: 1988,
+	getAge: function() {
+		var b = this.birth;
+		var fn = () => new Date().getFullYear() - this.birth;
+		return fn();
 	}
-one(function(){console.log('print');})
-(x) {
-		return f(x);
+}
+
+obj.getAge();
+
+var obj = {
+	birth: 1988,
+	getAge: function(year) {
+		var b = this.birth;
+		var fn = (y) => y - this.birth;
+		return fn.call({birth:2000}, year);//由于this在箭头函数中已经按照词法作用域绑定了，所以，用call()或者apply()调用箭头函数时，无法对this进行绑定，即传入的第一个参数被忽略：
 	}
-110803181245796
+}
+obj.getAge(2016);
 
 
+// generator
+// generator（生成器）是ES6标准引入的新的数据类型。一个generator看上去像一个函数，但可以返回多次
+// generator跟函数很像，定义如下：
+function* foo(x) {
+	yield x + 1;
+	yield x + 2;
+	return x + 3;
+}
+// generator和函数不同的是，generator由function*定义（注意多出的*号），并且，除了return语句，还可以用yield返回多次。
+// 我们以一个著名的斐波那契数列为例，它由0，1开头：
+// 0 1 1 2 3 5 8 13 21 34 ...
+function fib(max) {
+	var 
+		t, 
+		a = 0,
+		b = 1,
+		arr = [0, 1];
+	while(arr.length < max) {
+		t = a + b;
+		a = b;
+		b = t;
+		arr.push(t);
+	}
+	return arr;
+}
+fib(10); //[0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
+// 函数只能返回一次，所以必须返回一个Array。但是，如果换成generator，就可以一次返回一个数，不断返回多次。用generator改写如下：
+function* fib(max){
+	var 
+		t,
+		a = 0,
+		b = 1,
+		n = 1;
+	while(n < max) {
+		yield a;
+		t = a + b;
+		a = b;
+		b = t;
+		n ++;
+	}
+	return a;
+}
+fib(5);
+// fib {[[GeneratorStatus]]: "suspended"}
+// fib
+// __proto__: Generator
+// [[GeneratorStatus]]: "suspended"
+// [[GeneratorFunction]]: (max)
+// [[GeneratorReceiver]]: Window
+// [[GeneratorLocation]]: VM37920:1
 
+// 直接调用一个generator和调用函数不一样，fib(5)仅仅是创建了一个generator对象，还没有去执行它。
+// 调用generator对象有两个方法，一是不断地调用generator对象的next()方法：
+var f = fib(5);
+f.next(); // {value: 0, done: false}
+f.next(); // {value: 1, done: false}
+f.next(); // {value: 1, done: false}
+f.next(); // {value: 2, done: false}
+f.next(); // {value: 3, done: true}
+var f = fib(5);
+f.next().value //0
+f.next().value //1
+f.next().value //1
+f.next().value //2
+f.next().value //3
+// next()方法会执行generator的代码，然后，每次遇到yield x;就返回一个对象{value: x, done: true/false}，
+// 然后“暂停”。返回的value就是yield的返回值，done表示这个generator是否已经执行结束了。如果done为true，则value就是return的返回值。
+while(f.next().done){
+	console.log('a');
+	f.next();
+}
+// 第二个方法是直接用for ... of循环迭代generator对象，这种方式不需要我们自己判断done：
+for(var x of fib(10)) {
+	console.log(x);
+}
 
+// generator和普通函数相比，有什么用？
+// 因为generator可以在执行过程中多次返回，所以它看上去就像一个可以记住执行状态的函数，利用这一点，写一个generator就可以实现需要用面向对象才能实现的功能。例如，用一个对象来保存状态，得这么写：
+var fib = {
+    a: 0,
+    b: 1,
+    n: 0,
+    max: 5,
+    next: function () {
+        var
+            r = this.a,
+            t = this.a + this.b;
+        this.a = this.b;
+        this.b = t;
+        if (this.n < this.max) {
+            this.n ++;
+            return r;
+        } else {
+            return undefined;
+        }
+    }
+};
+// 用对象的属性来保存状态，相当繁琐。
+// generator还有另一个巨大的好处，就是把异步回调代码变成“同步”代码。这个好处要等到后面学了AJAX以后才能体会到。
+// 没有generator之前的黑暗时代，用AJAX时需要这么写代码：
+ajax('http://url-1', data1, function (err, result) {
+    if (err) {
+        return handle(err);
+    }
+    ajax('http://url-2', data2, function (err, result) {
+        if (err) {
+            return handle(err);
+        }
+        ajax('http://url-3', data3, function (err, result) {
+            if (err) {
+                return handle(err);
+            }
+            return success(result);
+        });
+    });
+});
+// 回调越多，代码越难看。
+// 有了generator的美好时代，用AJAX时可以这么写：
+try {
+    r1 = yield ajax('http://url-1', data1);
+    r2 = yield ajax('http://url-2', data2);
+    r3 = yield ajax('http://url-3', data3);
+    success(r3);
+}
+catch (err) {
+    handle(err);
+}
+// 看上去是同步的代码，实际执行是异步的。
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// 练习
+// 要生成一个自增的ID，可以编写一个next_id()函数：
+var current_id = 0;
+function next_id() {
+    current_id ++;
+    return current_id;
+}
+// 由于函数无法保存状态，故需要一个全局变量current_id来保存数字。
+// 不用闭包，试用generator改写：
+'use strict';
+function* next_id(){
+	var i = 1;
+	while(true){
+		yield i++;
+	}
+}
+var 
+	x,
+	pass = true,
+	g = next_id();
+for( x = 1; x < 100; x ++) {
+	if(g.next().value != x) {
+		pass = false;
+		alert('test fail');
+		break;
+	}
+}
+if (pass) {
+	alert('test success!');
+}
 
 
 
